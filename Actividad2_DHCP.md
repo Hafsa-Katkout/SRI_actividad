@@ -36,11 +36,93 @@ configuracion de dhcp:
 copia de seguridad :
 ![jsdgh](./images/15.jpg)
 
+configuracion 1 dhcp :
+![jsdgh](./images/16.jpg)
+
+copia de seguridad:
+![jsdgh](./images/17.jpg)
+
+
+configuracion  rango start by 3 because the debian have the 2:
+![jsdgh](./images/25.jpg)
+
+ubuntu reservacion :
+![jsdgh](./images/19.jpg)
+
+dhcp configuracion restart :
+![jsdgh](./images/20.jpg)
+
+dhcp satuts:
+![jsdgh](./images/21.jpg)
+
+
+
+
+
+
+
+
+
 
 ex2 :
 
 equipo windows as dhhcp :
 ![jsdgh](./images/12.jpg)
 
-equipo ubuntu as dhcp :
+. equipo ubuntu as dhcp :
 ![jsdgh](./images/13.jpg)
+
+gateway
+
+![jsdgh](./images/24.jpg)
+
+nombre del dominio :
+![jsdgh](./images/26.jpg)
+dns por defecto :
+
+![jsdgh](./images/27.jpg)
+
+mac :
+
+![jsdgh](./images/28.jpg)
+
+. windows :
+![jsdgh](./images/29.jpg)
+
+
+
+ver el fichero rn debian :
+cat /var/lib/dhcp/dhcpd.leases:
+![jsdgh](./images/30.jpg)
+
+
+conection de ubuntu a windows :
+
+![jsdgh](./images/31.jpg)
+
+de windows a ubuntu :
+
+![jsdgh](./images/32.jpg)
+
+ping from ubuntu a internet :
+![jsdgh](./images/33.jpg)
+
+ping from windows a internet :
+![jsdgh](./images/34.jpg)
+
+ping from windows to the rooter:
+![jsdgh](./images/35.jpg)
+
+ping from ubuntu to rooter :
+
+![jsdgh](./images/36.jpg)
+
+
+ha registrado en los logs del sistema por la herramienta 
+Journalctl:
+
+![jsdgh](./images/37.jpg)
+
+
+sudo journalctl -u isc-dhcp-server --since "2024-10-10 12:00" --until "2024-10-10 13:00"
+
