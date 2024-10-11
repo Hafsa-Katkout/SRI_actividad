@@ -1,33 +1,54 @@
 #  Actividad
 ### Realizando la instalación y configuración de un servidor DHCP en Debian, junto con la configuración de dos clientes, uno con Windows y otro con Ubuntu, en la misma subred. Configurando el servidor para que asigne automáticamente direcciones IP y parámetros de red a los clientes. Verificando que los clientes reciban correctamente la configuración y tengan conectividad con la red e Internet, y documentando todo el proceso y resultados obtenidos con las capturas necesarias:
 --- 
-1. ## El diagrama :
+## El diagrama :
    
    ![awgf](./images/Captura%20de%20pantalla%202024-10-07%20110921.jpg)
 
-2. ## Instalación y configuración de la red. 
-   1. ### la máquina virtual del rooter Pfsence:
+ ## Preparación del entorno:
+   
+   ### Instalación :
+   1. La máquina virtual del rooter Pfsence `Pfsense_Hafsa`:
    ![jsdgh](./images/1.jpg)
+   2. La máquina virtual del cliente Windows `W_Hafsa` :
    ![uh](./images/2.jpg)
+   3. La máquina virtual del cliente Ubuntu `U_Hafsa`:
    ![sekkuh](./images/3.jpg)
+   4. La máquina virtual del servidor Debian `D_Hafsa`:
    ![seukrh](./images/4.jpg)
+   ### configuración de la red
+   
+   > **Router**
 
-   la red :
+   La máquina tiene dos tarjetas de red una conectada con internet usando Adaptador puente , la segunda conectada con red interna que se llama SRI215 para ser como puerta d'enlace para los clientes y el servidor para poder dar internet a las demás máquinas :
+      Para la ip de la red LAN le damos: **10.0.215.1**, es **el gateway** con mascara de 24 bits, luego la interfaz wan la configuramos con DHCP :
    ![jsdgh](./images/5.jpg)
+   > **W_Hafsa**
+
+   La maquina virtual de windows esta en la misma red interna SRI215, al principio le damos ip estatica: 10.0.215.7 , y como gateway la ip del router :
    ![jsdgh](./images/6.jpg)
+
+   > **D_Hafsa**
+
+el servidor tambien esta en la misma red interna SRI215, deberiamos darle la ip estatica fija :10.0.215.2 :
    ![jsdgh](./images/7.jpg)
+   > **U_Hafsa**
+
+   el cliente ubuntu tambien en la misma red interna SRI215, en el inicio le dimos la ip estatica: 10.0.215.9:
+
    ![jsdgh](./images/10.jpg)
-   dhcp no  en router :
+   > **Deshabilitar DHCP en el enrutador para que el servidor sea el único !**
+
    ![jsdgh](./images/GetImage.png)
 
 
 
-debian navega por internet :
+### Comprobamos si el servidor Debian navega por internet
 
 ![jsdgh](./images/8.jpg)
 ![jsdgh](./images/9.jpg)
 
-instalation of dhcp :
+## Instalación del servidor DHCP en Debian
 ![jsdgh](./images/11.jpg)
 
 configuracion de dhcp:
@@ -125,4 +146,14 @@ Journalctl:
 
 
 sudo journalctl -u isc-dhcp-server --since "2024-10-10 12:00" --until "2024-10-10 13:00"
+
+
+
+Preparación del entorno: Instalación y configuración de la red
+Instalación del servidor DHCP en Debian
+Configuración del servidor DHCP: Rango de IPs, puerta de enlace, DNS y reservas
+Configuración de los clientes DHCP: Windows y Linux
+Verificación de conectividad y acceso a internet en los equipos
+Monitoreo de logs y actividad del servidor DHCP con journalctl
+Documentación del proceso en GitHub y entrega en Teams
 
