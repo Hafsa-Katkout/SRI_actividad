@@ -1,224 +1,285 @@
-#  Servidor DHCP en Debian
+#  Configuración de un Servidor DHCP en Debian
+---
 
-## Índice
+   ## Introducción
 
-- [Servidor DHCP en Debian](#servidor-dhcp-en-debian)
+En este documento se detallará el proceso para instalar y configurar un servidor DHCP en Debian, configurar los clientes Windows y Linux para que se conecten al servidor, y verificar la conectividad en una red local.
+
+   ## Índice
+- [Configuración de un Servidor DHCP en Debian](#configuración-de-un-servidor-dhcp-en-debian)
+  - [Introducción](#introducción)
   - [Índice](#índice)
-    - [Realizando la instalación y configuración de un servidor DHCP en Debian, junto con la configuración de dos clientes, uno con Windows y otro con Ubuntu, en la misma subred. Configurando el servidor para que asigne automáticamente direcciones IP y parámetros de red a los clientes. Verificando que los clientes reciban correctamente la configuración y tengan conectividad con la red e Internet, y documentando todo el proceso y resultados obtenidos con las capturas necesarias:](#realizando-la-instalación-y-configuración-de-un-servidor-dhcp-en-debian-junto-con-la-configuración-de-dos-clientes-uno-con-windows-y-otro-con-ubuntu-en-la-misma-subred-configurando-el-servidor-para-que-asigne-automáticamente-direcciones-ip-y-parámetros-de-red-a-los-clientes-verificando-que-los-clientes-reciban-correctamente-la-configuración-y-tengan-conectividad-con-la-red-e-internet-y-documentando-todo-el-proceso-y-resultados-obtenidos-con-las-capturas-necesarias)
-  - [El diagrama :](#el-diagrama-)
-  - [Preparación del entorno:](#preparación-del-entorno)
-    - [Instalación :](#instalación-)
-    - [configuración de la red](#configuración-de-la-red)
-    - [Comprobamos si el servidor Debian navega por internet](#comprobamos-si-el-servidor-debian-navega-por-internet)
-  - [Instalación del servidor DHCP en Debian](#instalación-del-servidor-dhcp-en-debian)
-  - [Configuración del servidor DHCP: Rango de IPs, puerta de enlace, DNS y reservas](#configuración-del-servidor-dhcp-rango-de-ips-puerta-de-enlace-dns-y-reservas)
-  - [Configuración de los clientes DHCP: Windows y Linux](#configuración-de-los-clientes-dhcp-windows-y-linux)
-    - [Configuramos el cliente Windows como cliente DHCP :](#configuramos-el-cliente-windows-como-cliente-dhcp-)
-    - [Configuramos el cliente Ubuntu como cliente DHCP :](#configuramos-el-cliente-ubuntu-como-cliente-dhcp-)
-    - [comprobamos que todo está bien :](#comprobamos-que-todo-está-bien-)
+  - [Preparación del entorno de red](#preparación-del-entorno-de-red)
+    - [El diagrama :](#el-diagrama-)
+    - [Máquinas virtuales :](#máquinas-virtuales-)
+  - [](#)
+    - [Configuración de la red :](#configuración-de-la-red-)
+    - [Configuración del router :](#configuración-del-router-)
+    - [Prueba de conexión a Internet :](#prueba-de-conexión-a-internet-)
+  - [Configuración del servidor DHCP en Debian](#configuración-del-servidor-dhcp-en-debian)
+    - [Instalación del servicio DHCP :](#instalación-del-servicio-dhcp-)
+  - [Configuración del servidor](#configuración-del-servidor)
+  - [Configuración de los clientes DHCP: Windows y Ubuntu](#configuración-de-los-clientes-dhcp-windows-y-ubuntu)
+    - [Configuración de IP dinámica :](#configuración-de-ip-dinámica-)
+      - [Windows](#windows)
+      - [Ubuntu](#ubuntu)
+    - [Verificación de parámetros asignados en los clientes :](#verificación-de-parámetros-asignados-en-los-clientes-)
+      - [Windows](#windows-1)
+      - [Ubuntu](#ubuntu-1)
+      - [Verificación de Asignación de IPs en el Servidor DHCP :](#verificación-de-asignación-de-ips-en-el-servidor-dhcp-)
   - [Verificación de conectividad y acceso a internet en los equipos](#verificación-de-conectividad-y-acceso-a-internet-en-los-equipos)
     - [Conectividad entre los clientes:](#conectividad-entre-los-clientes)
     - [Acceco a internet:](#acceco-a-internet)
     - [Conectividad con el router :](#conectividad-con-el-router-)
-  - [Monitoreo de logs y actividad del servidor DHCP con journalctl](#monitoreo-de-logs-y-actividad-del-servidor-dhcp-con-journalctl)
-    - [Explicacion :](#explicacion-)
+  - [Monitoreo de Logs y Actividad del Servidor DHCP con journalctl](#monitoreo-de-logs-y-actividad-del-servidor-dhcp-con-journalctl)
+  - [Conclusión](#conclusión)
+
+---
 ---
 
-### Realizando la instalación y configuración de un servidor DHCP en Debian, junto con la configuración de dos clientes, uno con Windows y otro con Ubuntu, en la misma subred. Configurando el servidor para que asigne automáticamente direcciones IP y parámetros de red a los clientes. Verificando que los clientes reciban correctamente la configuración y tengan conectividad con la red e Internet, y documentando todo el proceso y resultados obtenidos con las capturas necesarias:
---- 
-## El diagrama :
+## Preparación del entorno de red
+
+   ### El diagrama :
    
-   ![awgf](./images/Captura%20de%20pantalla%202024-10-07%20110921.jpg)
+   ![diagrama](./images/Captura%20de%20pantalla%202024-10-07%20110921.jpg)
 
- ## Preparación del entorno:
+   ---
+   ### Máquinas virtuales :
+
+   Creamos 4 máquinas virtuales en VirtualBox. Una para **Debian** como **servidor DHCP** y dos como **clientes**: una con **Windows** y otra con **Linux** .**Router Pfsense** . Luego conectamos todas a una **red interna llamada SRI215** :
+
+1. La máquina virtual del **Rooter Pfsence** llamada *Pfsense_Hafsa*:
+
+   ![router](./images/1.jpg)
    
-   ### Instalación :
-   > 1. La máquina virtual del **rooter Pfsence** `Pfsense_Hafsa`:
-
-   ![jsdgh](./images/1.jpg)
+2. La máquina virtual del **Cliente Windows** llamada *W_Hafsa* :
    
-   > 2. La máquina virtual del **cliente Windows** `W_Hafsa` :
+   ![windows](./images/2.jpg)
    
-   ![uh](./images/2.jpg)
+3. La máquina virtual del **Cliente Ubuntu** llamada *U_Hafsa*:
    
-   > 3. La máquina virtual del **cliente Ubuntu** `U_Hafsa`:
+   ![ubuntu](./images/3.jpg)
    
-   ![sekkuh](./images/3.jpg)
+4. La máquina virtual del **Servidor Debian** llamada *D_Hafsa*:
    
-   > 4. La máquina virtual del **servidor Debian** `D_Hafsa`:
+   ![debian](./images/4.jpg)
+   ---
    
-   ![seukrh](./images/4.jpg)
+### Configuración de la red :
    
-   ### configuración de la red
+1.  **Router** :
+
+      La máquina cuenta con **dos tarjetas de red**: una configurada como **adaptador puente** para conectarse a Internet, y la otra conectada a una **red interna llamada SRI215**, que actúa como **puerta de enlace** para los clientes y el servidor, permitiendo proporcionar acceso a Internet a las demás máquinas.
+
+      En la red **LAN**, asignamos la dirección IP **10.0.215.1** como gateway, con una máscara de **24 bits**. Por otro lado, la interfaz WAN se configura utilizando DHCP:
+
+      ![router](./images/5.jpg)
+
+2. **Debian Server**:
    
-   > **Router**
+      El servidor también está en la misma **red interna SRI215**. Le asignamos una IP estática fija por ejemplo : **10.0.215.2** :
 
-La máquina tiene dos tarjetas de red una conectada con internet usando **Adaptador puente** , la segunda conectada con **red interna** que se llama **SRI215** para ser como **puerta d'enlace** para los clientes y el servidor para poder dar internet a las demás máquinas :
- Para la ip de la red LAN le damos: **10.0.215.1**, es **el gateway** con **mascara de 24 bits**, luego la interfaz wan la configuramos con **DHCP** :
-
-   ![jsdgh](./images/5.jpg)
+      ![bebian](./images/7.jpg)
    
- > **W_Hafsa**
+3. **El cliente Windows**:
 
-   La maquina virtual de windows esta en la misma **red interna SRI215**, al principio le damos ip estatica: **10.0.215.7** , y como **gateway la ip del router** :
+      La máquina virtual con **Windows** está conectada a la misma **red interna SRI215**. Al principio, le asignamos una IP estática: **10.0.215.7**, y como **puerta de enlace**, usamos la dirección **IP del router**:
 
-   ![jsdgh](./images/6.jpg)
+      ![windows](./images/6.jpg)
 
-   > **D_Hafsa**
+4. **El cliente Ubuntu:**
 
-   El servidor tambien esta en la misma **red interna SRI215**, deberiamos darle la ip estatica fija :**10.0.215.2** :
-   ![jsdgh](./images/7.jpg)
+      El cliente Ubuntu también está en la misma **red interna SRI215**, donde le dimos la IP estática **10.0.215.9** al inicio:
 
-   > **U_Hafsa**
+      ![ubuntu](./images/10.jpg)
+   ---
 
-   el cliente ubuntu tambien en la misma red interna **SRI215**, en el inicio le dimos la ip estatica: **10.0.215.9**:
+### Configuración del router :
 
-   ![jsdgh](./images/10.jpg)
+   En el router pfSense, **desactivamos el servicio DHCP** en la **red SRI215** para evitar conflictos con el servidor DHCP que configuramos en Debian:
 
-   > **Deshabilitar DHCP en el enrutador para que el servidor sea el único !**
+   ![router](./images/GetImage.png)
 
-   ![jsdgh](./images/GetImage.png)
+   ---
 
+### Prueba de conexión a Internet :
 
+   Verificamos que el servidor Debian naviga por Internet :
 
-### Comprobamos si el servidor Debian navega por internet
-Para comprobar que el servidor navega por internet hacemos :
-1. ping a **8.8.8.8**:
+   1. Ping a **8.8.8.8**:
    
-![jsdgh](./images/8.jpg)
+      ![internet](./images/8.jpg)
 
-2. ping a **www.google.es**:
+   2. Ping a **www.google.es**:
 
-![jsdgh](./images/9.jpg)
+      ![internet](./images/9.jpg)
+---
+---
+## Configuración del servidor DHCP en Debian
 
-## Instalación del servidor DHCP en Debian
+### Instalación del servicio DHCP :
 
-`apt-get install isc-dhcp-server`:
+Instalamos el **servicio DHCP** en **Debian**, lo que nos permite asignar direcciones IP automáticamente en la red con el comando :`apt-get install isc-dhcp-server`:
 
-![jsdgh](./images/11.jpg)
+![dhcp](./images/11.jpg)
 
-## Configuración del servidor DHCP: Rango de IPs, puerta de enlace, DNS y reservas
-1. Añadir el nombre de la interfaz corresondiente `enp0s3` en el fichero`/etc/default/isc-dhcp-server` y ponemos `INTERFACES='enp0s3'`:
+---
+---
+
+## Configuración del servidor
+   1. **Configuración de la Interfaz en el Fichero /etc/default/isc-dhcp-server**:
    
-   ![jsdgh](./images/14.jpg)
-
-2. Hacemos una copia de seguridad del fichero de la onfiguracion:
-
-   ![jsdgh](./images/17.jpg)
-
-3. Cambiamos el fichero con nuestra configuracion :
-
-   En el fichero `/etc/dhcp/dhcpd.conf` en el partado que empieza con `A slightly diffrent configuration for an internal subnet ` ponemos :
-
-   > Direcciones IP en el rango 10.0.215.3 – 10.0.215.100 
+      En el fichero **/etc/default/isc-dhcp-server**, añadimos el nombre de la interfaz correspondiente, que en este caso es **enp0s3**. Para ello, configuramos la línea **INTERFACES='enp0s3'**, indicando así la interfaz de red que utilizará el servidor DHCP para asignar las direcciones IP :
    
-         ¡Ponemos un rango de ips que empieza con 3 porque la ip 1 es del router y 2 es del servidor! 
+      ![dhcp](./images/14.jpg)
 
-   > La máscara `255.255.255.0`
+   2. **Hacemos una copia de seguridad del fichero de la onfiguracion:**
 
-   > Puerta de enlace : `10.0.215.1`
+      ![dhcp](./images/17.jpg)
 
-   > DNS : `8.8.8.8`
+   3. **Configuración del Rango de IPs y Parámetros DHCP en Debian para la Subred SRI215 en /etc/dhcp/dhcpd.conf** :
 
-   > El sufijo DNS `SRI215.local` 
+      En el fichero **/etc/dhcp/dhcpd.conf**, en el apartado que empieza con **"A slightly different configuration for an internal subnet"**, configuramos el **servidor DHCP** para la subred SRI215. Establecemos el rango de IPs de **10.0.215.3 a 10.0.215.100**, reservando **10.0.215.1** para el router y **10.0.215.2** para el servidor. La máscara de subred es **255.255.255.0**, la puerta de enlace es **10.0.215.1**, y el DNS es **8.8.8.8**. Además, el sufijo DNS es **SRI215.local**, y el tiempo de alquiler predeterminado es de **15 días**, con un máximo de **30 días** y un mínimo de **1 semana**:
 
-   >  El tiempo de alquiler por defecto será de 15 días para todos los 
-   > equipos =`1296000 s `
-   > Nunca será superior a 30 días= `2592000 s ` 
-   > Nunca será inferior a 1 semana = `604800 s `
+      ![configuracion](./images/25.jpg)
 
-   ![jsdgh](./images/25.jpg)
+   4. **Reserva de Dirección IP para el Cliente Ubuntu**:
 
-   > La reserve del cliente > Ubuntu :`10.0.215.60`:
+      Realizamos la reserva de la dirección IP para el cliente Ubuntu, asignándole la IP **10.0.215.60**. De esta manera, garantizamos que el cliente siempre reciba la misma dirección IP al conectarse a la red.
 
-   ![jsdgh](./images/19.jpg)
+      ![configuracion](./images/19.jpg)
 
-4. reiniciar el serviciio y verificar que eestá activo y en ejecución :
-   
-   . Reiniciar :
-![jsdgh](./images/20.jpg)
+   5. **Reinicio y Verificación del Servicio DHCP en Debian :**
 
-   . La verificacion :
-![jsdgh](./images/21.jpg)
+      Reiniciamos el servicio DHCP para aplicar los cambios realizados en la configuración:
 
+      ![configuracion](./images/20.jpg)
+
+      Luego, verificamos que el servicio esté activo y en ejecución utilizando el comando systemctl status isc-dhcp-server, asegurándonos de que el servidor DHCP esté funcionando correctamente:
+
+      ![prueba](./images/21.jpg)
 
 
+---
+---
 
-## Configuración de los clientes DHCP: Windows y Linux
+## Configuración de los clientes DHCP: Windows y Ubuntu
 
-   ### Configuramos el cliente Windows como cliente DHCP :
-   ![jsdgh](./images/12.jpg)
+### Configuración de IP dinámica :
 
-   ### Configuramos el cliente Ubuntu como cliente DHCP :
-   ![jsdgh](./images/13.jpg)
+En los clientes Windows y Linux, ajustamos la configuración de red para que obtengan direcciones IP automáticamente desde el servidor DHCP. Esto se realiza configurando la opción de "Obtener una dirección IP automáticamente" en las propiedades de red de cada cliente:
 
-   ### comprobamos que todo está bien :
-   > En Ubuntu :
-      
-         Podemos ver que como cliente del servidor DHCP Debian el cliente tiene como puerta d'enlace la 1 :
+   ---
 
-   ![jsdgh](./images/24.jpg)
+#### Windows 
 
-         como Nombre del dominio tiene SRI215.local:
+![windows](./images/12.jpg)
 
-   ![jsdgh](./images/26.jpg)
+   ---
 
-         El DNS viene en Ubuntu por defecto:
+#### Ubuntu
 
-   ![jsdgh](./images/27.jpg)
+![ubuntu](./images/13.jpg)
 
-         La mac :
+   ---
 
-   ![jsdgh](./images/28.jpg)
+### Verificación de parámetros asignados en los clientes :
 
-   >  windows :
-   
-         En el cliente Windows toda la configuracion esta clara con el comando `IPCONFIG /ALL`:
+Revisamos **las direcciones IP** y otros parámetros como **la máscara de subred, la puerta de enlace y los servidores DNS** para confirmar que coincidan con la configuración del servidor DHCP:
 
-   ![jsdgh](./images/29.jpg)
+---
 
+#### Windows 
 
+En el cliente Windows, toda la configuración de red se verifica fácilmente utilizando el comando *IPCONFIG /ALL**. Este comando muestra información detallada sobre la dirección IP, la máscara de subred, la puerta de enlace y los servidores DNS:
 
-1. Comprobamos que las ips han sido asignadas dentro del servidor en el fichero : 
-`cat /var/lib/dhcp/dhcpd.leases`:
-![jsdgh](./images/30.jpg)
+![windws](./images/29.jpg)
+
+---
+
+#### Ubuntu
+
+En Ubuntu, como cliente del servidor DHCP Debian, podemos observar varios parámetros importantes. La puerta de enlace predeterminada es **10.0.215.1** (como se muestra en la imagen):
+
+![ubuntu](./images/24.jpg)
+
+El nombre de dominio está configurado como **SRI215.local**:
+
+![ubuntu](./images/26.jpg)
+
+El DNS predeterminado viene configurado por defecto en Ubuntu. Este valor puede modificarse editando el archivo **/etc/resolv.conf**:
+
+![ubuntu](./images/27.jpg)
+
+También podemos verificar la dirección **MAC** del cliente:
+
+![ubuntu](./images/28.jpg)
+
+**Estos detalles confirman que la configuración de red está correctamente aplicada desde el servidor DHCP.**
+
+---
+
+#### Verificación de Asignación de IPs en el Servidor DHCP :
+
+Comprobamos que las IPs han sido asignadas correctamente dentro del servidor DHCP utilizando el comando **cat /var/lib/dhcp/dhcpd.leases** :
+
+![ip](./images/30.jpg)
+
+---
+---
 
 ## Verificación de conectividad y acceso a internet en los equipos
 
 ### Conectividad entre los clientes:
-1. de Ubuntu a Windows :
-   ![jsdgh](./images/31.jpg)
+   1. De Ubuntu a Windows :
 
-2. de windows a ubuntu :
+      ![windows](./images/31.jpg)
 
-   ![jsdgh](./images/32.jpg)
+   2. De windows a Ubuntu :
+
+      ![ubuntu](./images/32.jpg)
+
+      ---
 
 ### Acceco a internet:
 
    1. Ubuntu:
-   ![jsdgh](./images/33.jpg)
 
- 2. Windows :
-   ![jsdgh](./images/34.jpg)
+      ![ubuntu](./images/33.jpg)
+
+   2. Windows :
+   
+      ![windows](./images/34.jpg)
+
+      ---
 
 ### Conectividad con el router :
 
-1. Windows:
-   ![jsdgh](./images/35.jpg)
+   1. Windows:
+   
+      ![windows](./images/35.jpg)
 
-   1. Ubuntu :
+   2. Ubuntu :
 
-   ![jsdgh](./images/36.jpg)
+      ![ubuntu](./images/36.jpg)
 
-## Monitoreo de logs y actividad del servidor DHCP con journalctl
-### Explicacion :
+---
+---
+      
 
-El funcionamiento del servidor **DHCP** en Debian con **isc-dhcp-server** se basa en la gestión automática de direcciones IP mediante un ciclo de cuatro pasos: descubrimiento, oferta, solicitud y confirmación. El servidor asigna IPs, máscara de subred, puerta de enlace y DNS a los clientes, además de gestionar las renovaciones de leases. Toda esta actividad queda registrada en los logs del sistema, y con **journalctl** (`journalctl -u isc-dhcp-server`), podemos monitorizar solicitudes, asignaciones y errores. Esto nos permite verificar que el servidor opera correctamente y que las configuraciones de red se aplican sin problemas.
+## Monitoreo de Logs y Actividad del Servidor DHCP con journalctl
 
-![jsdgh](./images/37.jpg)
+El servidor DHCP en Debian, utilizando **isc-dhcp-server**, gestiona automáticamente las direcciones IP a través de un ciclo de cuatro fases: **descubrimiento, oferta, solicitud y confirmación**. Durante este proceso, el servidor asigna **direcciones IP, máscara de subred, puerta de enlace y servidores DNS** a los clientes, además de gestionar las renovaciones de leases. Toda esta actividad se registra en los logs del sistema, lo que permite una supervisión detallada del servicio. Mediante el uso de **journalctl (journalctl -u isc-dhcp-server)**, podemos monitorizar en tiempo real las solicitudes, asignaciones y posibles errores, garantizando así que el servidor DHCP funcione correctamente y que las configuraciones de red se apliquen sin inconvenientes.
 
-> Para filtrar por el tiempo ejecutamos en el servidor :
+![dhcp](./images/37.jpg)
+
+Para **filtrar los logs por un período específico**, podemos ejecutar el siguiente comando en el servidor:
 
 `sudo journalctl -u isc-dhcp-server --since "2024-10-10 12:00" --until "2024-10-10 13:00"`
 
+---
+---
 
+## Conclusión 
+
+La configuración de un servidor DHCP permite gestionar de manera automática y eficiente las direcciones IP en una red, facilitando la conectividad de los dispositivos. Completar estos pasos garantiza que el servidor y los clientes funcionen correctamente en una red local.
